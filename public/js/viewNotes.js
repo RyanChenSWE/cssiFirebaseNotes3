@@ -1,5 +1,7 @@
 let googleUserId; 
 let deleteArray = []; 
+let noteTitleArray = []; 
+let archivedNotes = []; 
 
 window.onload = (event) => {
   // Use this to retain user state between html pages.
@@ -26,17 +28,23 @@ const getNotes = (userId) => {
 const renderDataAsHtml = (data) => {
   let cards = ``;
   for(const noteId in data) {
-    const note = data[noteId];
+    const note = data[noteId];    
     // For each note create an HTML card
-    cards += createCard(note, noteId)
+    noteTitleArray.push([note.title, note, noteId])
+    noteTitleArray.sort()
   };
+
+  for (const noteData in noteTitleArray) {
+    cards += createCard(noteTitleArray[noteData][1], noteTitleArray[noteData][2])  
+  };
+
   // Inject our string of HTML into our viewNotes.html page
   document.querySelector('#app').innerHTML = cards;
 };
 
 const createCard = (note, noteId) => {
     return `
-     <div class="column is-one-quarter">
+     <div id="${noteId}" class="column is-one-quarter">
        <div class="card">
          <header class="card-header">
            <p class="card-header-title">${note.title}</p>
@@ -45,7 +53,7 @@ const createCard = (note, noteId) => {
            <div class="content">${note.text}</div>
          </div>
          <footer class="card-footer">
-            <a id="${noteId}" href="#" class="card-footer-item" onclick="deleteNote('${noteId}')">Delete</a>
+            <a id="${"Delete" + noteId}" href="#" class="card-footer-item" onclick="deleteNote('${noteId}')">Archive</a>
             <a href="#" class="card-footer-item" onclick="editNote('${noteId}')">Edit</a>
          </footer>
        </div>
@@ -68,13 +76,37 @@ function editNote(noteId) {
 }
 
 function deleteNote(noteId) {
-    const deleteButton = document.querySelector(`#${noteId}`);
-    
-    if (deleteArray.includes(noteId)) {
-        firebase.database().ref(`users/${googleUserId}/${noteId}`).remove();
+    const deleteButton = document.querySelector(`#${"Delete" + noteId}`);
+    if (deleteArray.includes(`${noteId} delete`)) {
+        // firebase.database().ref(`users/${googleUserId}/${noteId}`).remove();
+        const note = document.getElementById(noteId);
+        note.style.display = "none"; 
+        archivedNotes.push(note);
     } else {
-        deleteArray.push(noteId); 
+        deleteArray.push(`${noteId} delete`); 
         deleteButton.innerHTML = "Sure?";
+    }
+}
+
+function showArchived() {
+    for (note in noteTitleArray) {
+        let noteId = document.getElementById(noteTitleArray[note][2]);
+        noteId.style.display = "none";  
+    }
+
+    for (archivedNote in archivedNotes) {
+        archivedNotes[archivedNote].style.display = ""; 
+    }
+}
+
+function showUnarchived() {
+    for (note in noteTitleArray) {
+        let noteId = document.getElementById(noteTitleArray[note][2]);
+        noteId.style.display = "";  
+    }
+
+    for (archivedNote in archivedNotes) {
+        archivedNotes[archivedNote].style.display = "none"; 
     }
 }
 
