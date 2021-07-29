@@ -1,4 +1,5 @@
 let googleUserId; 
+let deleteArray = []; 
 
 window.onload = (event) => {
   // Use this to retain user state between html pages.
@@ -44,7 +45,7 @@ const createCard = (note, noteId) => {
            <div class="content">${note.text}</div>
          </div>
          <footer class="card-footer">
-            <a href="#" class="card-footer-item" onclick="deleteNote('${noteId}')">Delete</a>
+            <a id="${noteId}" href="#" class="card-footer-item" onclick="deleteNote('${noteId}')">Delete</a>
             <a href="#" class="card-footer-item" onclick="editNote('${noteId}')">Edit</a>
          </footer>
        </div>
@@ -67,7 +68,14 @@ function editNote(noteId) {
 }
 
 function deleteNote(noteId) {
-    firebase.database().ref(`users/${googleUserId}/${noteId}`).remove();
+    const deleteButton = document.querySelector(`#${noteId}`);
+    
+    if (deleteArray.includes(noteId)) {
+        firebase.database().ref(`users/${googleUserId}/${noteId}`).remove();
+    } else {
+        deleteArray.push(noteId); 
+        deleteButton.innerHTML = "Sure?";
+    }
 }
 
 function saveEditedNote() {
